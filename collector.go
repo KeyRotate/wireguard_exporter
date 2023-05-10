@@ -48,7 +48,7 @@ func New(devices func() ([]*wgtypes.Device, error), peerNames map[string]string)
 		PeerInfo: prometheus.NewDesc(
 			"wireguard_peer_info",
 			"Metadata about a peer. The public_key label on peer metrics refers to the peer's public key; not the device's public key.",
-			append(labels, []string{"endpoint", "name"}...),
+			append(labels, []string{"endpoint", "name",  "local_public_key"}...),
 			nil,
 		),
 
@@ -134,7 +134,7 @@ func (c *collector) Collect(ch chan<- prometheus.Metric) {
 				c.PeerInfo,
 				prometheus.GaugeValue,
 				1,
-				d.Name, pub, endpoint, name,
+				d.Name, pub, endpoint, name, d.PublicKey.String(),
 			)
 
 			for _, ip := range p.AllowedIPs {
