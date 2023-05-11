@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -48,7 +49,7 @@ func New(devices func() ([]*wgtypes.Device, error), peerNames map[string]string)
 		PeerInfo: prometheus.NewDesc(
 			"wireguard_peer_info",
 			"Metadata about a peer. The public_key label on peer metrics refers to the peer's public key; not the device's public key.",
-			append(labels, []string{"endpoint", "name",  "local_public_key"}...),
+			append(labels, []string{"endpoint", "name", "local_public_key", "received_bytes", "handshake_seconds"}...),
 			nil,
 		),
 
@@ -135,6 +136,8 @@ func (c *collector) Collect(ch chan<- prometheus.Metric) {
 				prometheus.GaugeValue,
 				1,
 				d.Name, pub, endpoint, name, d.PublicKey.String(),
+				strconv.FormatFloat(float64(p.ReceiveBytes), 'f', -1, 64), 
+				strconv.FormatFloat(float64(p.LastHandshakeTime.Unix()), 'f', -1, 64),
 			)
 
 			for _, ip := range p.AllowedIPs {
